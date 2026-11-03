@@ -186,6 +186,39 @@ a{color:var(--accent)}
 .prose th,.prose td{border:1px solid var(--line);padding:6px 11px;text-align:left}
 .prose th{background:var(--panel);font-weight:600}
 .prose .empty{color:var(--ink-3);font-style:italic}
+.kb-link{padding:.05em .4em;border-radius:6px;background:var(--accent-soft);color:var(--accent);text-decoration:none;font:500 .9em var(--sans);white-space:nowrap}
+.kb-link:hover{text-decoration:underline}
+.kb-link .ic{width:.95em;height:.95em;vertical-align:-.12em;margin-right:.3em}
+.kb-link.missing{background:none;color:var(--ink-3);border:1px dashed var(--ink-3);cursor:help}
+.kb-link.missing:hover{text-decoration:none}
+
+/* Folder page */
+.folder{flex:1;overflow:auto;padding:28px 24px 60px;-webkit-overflow-scrolling:touch}
+.folder-inner{max-width:760px;margin:0 auto}
+.f-trail{display:flex;flex-wrap:wrap;gap:6px;font-size:14px;color:var(--ink-3);margin:0 0 6px}
+.f-trail a{color:var(--ink-3);text-decoration:none}
+.f-trail a:hover{color:var(--accent);text-decoration:underline}
+.f-head{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px}
+.folder h2{font:600 30px/1.2 var(--serif);margin:0;letter-spacing:-.01em;overflow-wrap:anywhere}
+.f-meta{color:var(--ink-3);margin:4px 0 0;font-size:14px}
+.f-btns{display:flex;gap:8px}
+.f-list{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:12px;background:var(--card);overflow:hidden}
+.f-list li+li{border-top:1px solid var(--line)}
+.f-row{display:flex;align-items:center;gap:11px;min-height:50px;padding:8px 15px;color:var(--ink);text-decoration:none}
+.f-row:hover{background:var(--panel)}
+.f-row .ic{color:var(--ink-3)}
+.f-row .ic.f-dir{color:var(--accent)}
+.f-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.f-row small{color:var(--ink-3);font-size:13px;flex:none}
+.f-empty{color:var(--ink-3);padding:6px 0}
+
+/* Link badge on mind map ideas and flowchart steps */
+.node-link{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin:-3px -5px -3px 7px;border-radius:50%;vertical-align:middle;color:var(--n);background:var(--bg);cursor:pointer;flex:none}
+.node-link::after{content:"";position:absolute;inset:-8px}
+.node-link .ic{width:14px;height:14px}
+.node-link:hover{color:var(--accent)}
+.mm.root .node-link{color:var(--accent);background:var(--accent-ink)}
+.node-link.missing{opacity:.45}
 
 /* Diagram stage */
 .stage{flex:1;min-height:0;position:relative;overflow:hidden;background:var(--bg)}
@@ -286,6 +319,8 @@ dialog.dlg::backdrop{background:rgba(30,25,15,.42)}
   .home h2{font-size:27px}
   .home{align-items:flex-start}
   .note textarea,.prose{padding:20px 18px 80px}
+  .folder{padding:20px 16px 60px}
+  .folder h2{font-size:26px}
   .crumb-path{display:none}
   .state{font-size:12.5px}
 }
@@ -333,7 +368,8 @@ dialog.dlg::backdrop{background:rgba(30,25,15,.42)}
   <symbol id="i-save" viewBox="0 0 24 24"><path d="M5 12l5 5L19 7"/></symbol>
   <symbol id="i-rename" viewBox="0 0 24 24"><path d="M4 7V5h12v2M10 5v14M7.5 19h5M18 9v10M16 9h4M16 19h4"/></symbol>
   <symbol id="i-move" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 13h6M12.5 10.5L15 13l-2.5 2.5"/></symbol>
-  <symbol id="i-history" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8L4 8.5M4 4v4.5h4.5M12 8v4l3 2"/></symbol>
+  <symbol id="i-chain" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+  <symbol id="i-history"viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8L4 8.5M4 4v4.5h4.5M12 8v4l3 2"/></symbol>
 </svg>
 <div id="app"></div>
 <div class="toasts" role="status" aria-live="polite"></div>
@@ -531,7 +567,7 @@ const drafts = {
 
 /* ---------- Markdown: builds page elements directly, so note text can never run as code ---------- */
 function safeUrl(u) { return /^(https?:|mailto:)/i.test(u) ? u : null; }
-const INLINE = /(`+)([\s\S]+?)\1|\*\*([\s\S]+?)\*\*|\*(?=\S)([\s\S]+?)\*|~~([\s\S]+?)~~|!?\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)|(https?:\/\/[^\s<>)\]]+)/;
+const INLINE = /(`+)([\s\S]+?)\1|\*\*([\s\S]+?)\*\*|\*(?=\S)([\s\S]+?)\*|~~([\s\S]+?)~~|!?\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)|(https?:\/\/[^\s<>)\]]+)|\[\[([^\]|\n]+?)(?:\|([^\]\n]+?))?\]\]/;
 function inline(text, out) {
   while (text) {
     const m = INLINE.exec(text);
@@ -545,9 +581,85 @@ function inline(text, out) {
       const url = safeUrl(m[7]);
       if (url) inline(m[6] || url, out.appendChild(h('a', { href: url, target: '_blank', rel: 'noopener noreferrer' })));
       else out.append(m[0]);
-    } else out.append(h('a', { href: m[8], target: '_blank', rel: 'noopener noreferrer' }, m[8]));
+    } else if (m[8] != null) out.append(h('a', { href: m[8], target: '_blank', rel: 'noopener noreferrer' }, m[8]));
+    else out.append(kbLink(m[9], m[10]));
     text = text.slice(m.index + m[0].length);
   }
+}
+
+/* ---------- Keyword links: [[Folder/Sub folder|keyword]] opens a folder or file in this repository ---------- */
+const LINK_SUFFIXES = ['.md', '.markdown', '.mindmap.json', '.flow.json', '.txt'];
+/* Accepts a full path, or just the end of one, so [[GRU]] finds the folder Research/GRU. */
+function resolveLink(raw) {
+  const t = String(raw || '').trim().replace(/^\/+|\/+$/g, '');
+  if (!t) return null;
+  const folders = folderList();
+  if (folders.includes(t)) return { path: t, folder: true };
+  const docs = files().filter(visible).map(e => e.path);
+  const exact = docs.find(p => p === t) || docs.find(p => LINK_SUFFIXES.some(x => p === t + x));
+  if (exact) return { path: exact };
+  const low = t.toLowerCase();
+  const ends = p => { p = p.toLowerCase(); return p === low || p.endsWith('/' + low); };
+  const shortest = list => list.sort((a, b) => a.length - b.length)[0];
+  const f = shortest(folders.filter(ends));
+  if (f) return { path: f, folder: true };
+  const d = shortest(docs.filter(p => ends(p) || ends(p.slice(0, p.length - suffixOf(p).length))));
+  return d ? { path: d } : null;
+}
+const folderHash = path => '#/' + encPath(path) + '/';
+const linkHash = r => r.folder ? folderHash(r.path) : hashFor(r.path);
+const linkName = r => r.folder ? basename(r.path) : displayName(r.path);
+const linkIcon = r => r && !r.folder ? KIND_ICON[kindOf(r.path)] : 'folder';
+function kbLink(target, label) {
+  const r = resolveLink(target);
+  const text = (label || '').trim() || (r ? linkName(r) : target.trim());
+  if (!r) return h('span', { class: 'kb-link missing', title: 'Nothing called "' + target.trim() + '" is in this repository' }, text);
+  return h('a', { class: 'kb-link', href: linkHash(r), title: r.path }, icon(linkIcon(r)), text);
+}
+function followLink(link) {
+  const r = resolveLink(link);
+  if (r) location.hash = linkHash(r);
+  else toast('Nothing called "' + link + '" is in this repository. It may have been renamed or moved.', true);
+}
+function nodeLinkBadge(link) {
+  const r = resolveLink(link);
+  const label = r ? 'Open ' + r.path : 'Can\'t find ' + link;
+  return h('span', { class: 'node-link' + (r ? '' : ' missing'), 'data-link': link, title: label, 'aria-label': label }, icon(linkIcon(r)));
+}
+function linkTargets() {
+  const cmp = (a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true });
+  const out = folderList().map(f => ({ value: f, label: f.split('/').join(' / '), group: 'Folders' }));
+  for (const p of files().filter(visible).map(e => e.path).sort(cmp)) {
+    const d = dirname(p);
+    out.push({ value: p, label: (d ? d.split('/').join(' / ') + ' / ' : '') + displayName(p), group: 'Files' });
+  }
+  return out;
+}
+/* Returns { target, keyword }, { target: '' } to remove the link, or null when cancelled. */
+async function linkDialog({ title, body, keyword, current, askKeyword }) {
+  const options = linkTargets();
+  if (current && !options.some(o => o.value === current)) options.unshift({ value: current, label: current + ' (not found)' });
+  if (!options.length) { toast('Create a folder first, then link to it.', true); return null; }
+  const guess = r => r && options.some(o => o.value === r.path) ? r.path : null;
+  const fields = [];
+  if (askKeyword) fields.push({
+    name: 'keyword', label: 'Keyword', value: keyword || '',
+    validate: v => /[\]|\n]/.test(v) ? 'Keywords can\'t contain | or ].' : null,
+    onInput: (v, inputs) => { const p = guess(resolveLink(v)); if (p) inputs.target.value = p; }
+  });
+  fields.push({ name: 'target', label: 'Opens', options, value: current || guess(resolveLink(keyword)) || options[0].value });
+  const actions = [{ label: 'Cancel' }];
+  if (current) actions.push({ label: 'Remove link', value: 'remove', danger: true });
+  actions.push({ label: current ? 'Update link' : 'Add link', value: 'ok', primary: true });
+  const r = await dialog({ title, body, fields, actions });
+  if (!r) return null;
+  if (r.action === 'remove') return { target: '' };
+  return { target: r.target, keyword: (r.keyword || '').trim() };
+}
+function copyText(t) {
+  const ok = () => toast('Copied ' + t + '. Paste it into a note.');
+  const no = () => toast('Couldn\'t copy. Type ' + t + ' in a note instead.', true);
+  try { navigator.clipboard.writeText(t).then(ok, no); } catch { no(); }
 }
 function addLines(text, out) {
   text.split('\n').forEach((line, i) => {
@@ -684,9 +796,8 @@ function dialog({ title, body, fields = [], actions }) {
     form.append(h('h2', null, title));
     if (body) form.append(h('p', null, body));
     for (const f of fields) {
-      const input = f.options
-        ? h('select', null, f.options.map(o => h('option', { value: o.value, selected: o.value === f.value }, o.label)))
-        : h('input', { type: 'text', value: f.value || '', autocomplete: 'off', spellcheck: false });
+      const input = f.options ? selectBox(f.options, f.value) : h('input', { type: 'text', value: f.value || '', autocomplete: 'off', spellcheck: false });
+      if (f.onInput) input.addEventListener('input', () => f.onInput(input.value, inputs));
       inputs[f.name] = input;
       errors[f.name] = h('small', { class: 'err', hidden: true });
       form.append(h('label', { class: 'field' }, h('span', null, f.label), input, errors[f.name]));
@@ -718,6 +829,17 @@ function dialog({ title, body, fields = [], actions }) {
     const first = fields[0] && inputs[fields[0].name];
     if (first && first.select) first.select();
   });
+}
+function selectBox(options, value) {
+  const sel = h('select');
+  let group = null;
+  for (const o of options) {
+    const opt = h('option', { value: o.value, selected: o.value === value }, o.label);
+    if (!o.group) { group = null; sel.append(opt); continue; }
+    if (!group || group.label !== o.group) { group = h('optgroup', { label: o.group }); sel.append(group); }
+    group.append(opt);
+  }
+  return sel;
 }
 const confirmBox = (title, body, label, danger) => dialog({ title, body, actions: [{ label: 'Cancel' }, { label, value: 'ok', primary: !danger, danger }] }).then(Boolean);
 
@@ -824,8 +946,9 @@ class Stage {
       return;
     }
     if (this.pointers.size > 2) return;
-    this.gesture = { type: 'pan', hit: this.hitTest(e.target), sx: e.clientX, sy: e.clientY, vx: this.view.x, vy: this.view.y, moved: false };
-    const hit = this.gesture.hit;
+    const link = e.target.closest('[data-link]');
+    const hit = link ? { kind: 'link', id: 'l:' + link.dataset.link, link: link.dataset.link } : this.hitTest(e.target);
+    this.gesture = { type: 'pan', hit, sx: e.clientX, sy: e.clientY, vx: this.view.x, vy: this.view.y, moved: false };
     if (hit && !this.readOnly && hit.draggable) this.gesture.type = 'drag';
   }
   move(e) {
@@ -857,6 +980,7 @@ class Stage {
     if (g.type === 'pinch') { if (!this.pointers.size) this.gesture = null; return; }
     this.gesture = null;
     if (g.moved) { if (g.type === 'drag') this.dragEnd(g, e); return; }
+    if (g.hit && g.hit.kind === 'link') { followLink(g.hit.link); return; }
     const now = Date.now(), last = this.lastTap;
     const same = last && g.hit && last.id === g.hit.id && now - last.at < 380;
     this.lastTap = same ? null : { id: g.hit && g.hit.id, at: now };
@@ -959,6 +1083,13 @@ class Stage {
   act(label, ic, run, cls, title) {
     return h('button', { type: 'button', class: 'act' + (cls ? ' ' + cls : ''), title: title || label, onClick: run }, icon(ic), h('span', null, label));
   }
+  async linkNode(id) {
+    const n = this.nodeById(id);
+    if (!n) return;
+    const r = await linkDialog({ title: this.linkTitle, body: 'Tap the link badge on it to open the folder or file.', current: n.link });
+    if (!r) return;
+    this.change(() => { const m = this.nodeById(id); if (!m) return; if (r.target) m.link = r.target; else delete m.link; });
+  }
   colorMenu(anchor, current, pick) {
     const row = h('div', { class: 'swatches' });
     row.append(h('button', { type: 'button', class: 'none', title: 'Automatic colour', 'aria-label': 'Automatic colour', onClick: () => { closeMenu(); pick(null); } }));
@@ -978,6 +1109,7 @@ function normMindNode(n, depth = 0) {
   if (n.side === 'left' || n.side === 'right') out.side = n.side;
   if (Number.isInteger(n.color) && n.color >= 0 && n.color < 6) out.color = n.color;
   if (n.collapsed) out.collapsed = true;
+  if (typeof n.link === 'string' && n.link.trim()) out.link = n.link.trim();
   out.children = (Array.isArray(n.children) ? n.children : []).map(c => normMindNode(c, depth + 1)).filter(Boolean);
   return out;
 }
@@ -989,6 +1121,8 @@ function parseMindMap(text) {
 const newMindMap = name => ({ type: 'mindmap', version: 1, root: { id: uid(), text: name, children: [] } });
 
 class MindMap extends Stage {
+  get linkTitle() { return 'Link this idea'; }
+  nodeById(id) { const f = this.find(id); return f && f.node; }
   find(id, n = this.doc.root, parent = null) {
     if (n.id === id) return { node: n, parent };
     for (const c of n.children) { const r = this.find(id, c, n); if (r) return r; }
@@ -1004,6 +1138,7 @@ class MindMap extends Stage {
       const cls = ['node', 'mm', depth === 0 ? 'root' : depth === 1 ? 'l1' : '', c != null ? 'c' + c : '', this.sel === n.id ? 'sel' : ''].join(' ');
       const blank = !n.text;
       const el = h('div', { class: cls, 'data-id': n.id }, h('span', { class: 'tx' + (blank ? ' blank' : '') }, n.text || 'Empty idea'));
+      if (n.link) el.append(nodeLinkBadge(n.link));
       if (hasKids && depth > 0 && (n.collapsed || this.sel === n.id)) {
         el.append(h('button', { type: 'button', class: 'fold ' + (side === 'left' ? 'l' : 'r'), 'data-fold': n.id, title: n.collapsed ? 'Show ideas' : 'Hide ideas', 'aria-label': n.collapsed ? 'Show ideas' : 'Hide ideas' }, n.collapsed ? '+' + this.count(n) : '−'));
       }
@@ -1082,6 +1217,7 @@ class MindMap extends Stage {
       this.act('Add idea', 'child', () => this.addChild(), '', 'Add a connected idea (Tab)'),
       !isRoot && this.act('Beside', 'sibling', () => this.addSibling(), '', 'Add an idea beside this one (Enter)'),
       this.act('Edit', 'edit', () => this.edit(node.id), '', 'Edit text (F2)'),
+      this.act('Link', 'chain', () => this.linkNode(node.id), node.link ? 'on' : '', node.link ? 'Change or remove the folder link' : 'Link to a folder or file'),
       !isRoot && this.act('Colour', 'color', ev => this.colorMenu(ev.currentTarget, node.color, c => this.setColor(node.id, c))),
       !isRoot && node.children.length > 0 && this.act(node.collapsed ? 'Show' : 'Hide', 'fold', () => this.toggle(node.id)),
       !isRoot && this.act('Delete', 'trash', () => this.remove(), 'del', 'Delete idea and its branches (Delete)')
@@ -1222,6 +1358,7 @@ function parseFlow(text) {
   const nodes = d.nodes.filter(n => n && n.id != null).map(n => {
     const o = { id: String(n.id), text: String(n.text ?? ''), shape: SHAPES[n.shape] ? n.shape : 'step', x: Number(n.x) || 0, y: Number(n.y) || 0 };
     if (Number.isInteger(n.color) && n.color >= 0 && n.color < 6) o.color = n.color;
+    if (typeof n.link === 'string' && n.link.trim()) o.link = n.link.trim();
     return o;
   });
   const ids = new Set(nodes.map(n => n.id));
@@ -1231,6 +1368,8 @@ function parseFlow(text) {
 const newFlow = () => ({ type: 'flowchart', version: 1, nodes: [{ id: uid(), text: 'Start', shape: 'terminal', x: 0, y: 0 }], edges: [] });
 
 class Flow extends Stage {
+  get linkTitle() { return 'Link this step'; }
+  nodeById(id) { return this.nodeOf(id); }
   nodeOf(id) { return this.doc.nodes.find(n => n.id === id); }
   edgeOf(id) { return this.doc.edges.find(e => e.id === id); }
   render() {
@@ -1241,6 +1380,7 @@ class Flow extends Stage {
       const el = h('div', { class: `node fl s-${n.shape} ${n.color != null ? 'c' + n.color : ''} ${selected ? 'sel' : ''}`, 'data-id': n.id });
       if (POLY[n.shape]) el.append(s('svg', { class: 'shape', viewBox: '0 0 100 100', preserveAspectRatio: 'none' }, s('polygon', { points: POLY[n.shape] })));
       el.append(h('span', { class: 'tx' + (n.text ? '' : ' blank') }, n.text || 'Empty'));
+      if (n.link) el.append(nodeLinkBadge(n.link));
       if (selected && !this.readOnly) {
         for (const [dx, dy] of [[.5, 0], [1, .5], [.5, 1], [0, .5]]) {
           const dot = h('div', { class: 'handle', 'data-handle': n.id, title: 'Drag to connect' });
@@ -1329,6 +1469,7 @@ class Flow extends Stage {
         this.act('Next', 'child', () => this.addNext(n), '', 'Add the next step'),
         this.act('Connect', 'link', () => { this.linking = n.id; this.render(); }),
         this.act('Edit', 'edit', () => this.edit(n.id), '', 'Edit text (F2)'),
+        this.act('Link', 'chain', () => this.linkNode(n.id), n.link ? 'on' : '', n.link ? 'Change or remove the folder link' : 'Link to a folder or file'),
         this.act('Shape', 'shape', ev => showMenu(ev.currentTarget, Object.entries(SHAPES).map(([key, v]) => ({ icon: 'shape', label: v.label, run: () => this.change(() => { n.shape = key; }) })))),
         this.act('Colour', 'color', ev => this.colorMenu(ev.currentTarget, n.color, c => this.change(() => { if (c == null) delete n.color; else n.color = c; }))),
         this.act('Delete', 'trash', () => this.remove(), 'del', 'Delete (Delete)')
@@ -1526,6 +1667,7 @@ class NoteEditor {
           ['•', 'Bullet list', () => this.prefix('- ')], ['1.', 'Numbered list', () => this.prefix('1. ')], ['☐', 'Checklist', () => this.prefix('- [ ] ')],
           ['❝', 'Quote', () => this.prefix('> ')], ['{ }', 'Code', () => this.wrap('`')], ['Link', 'Link', () => this.link()]
         ].map(([t, title, run, c]) => h('button', { type: 'button', class: 'fmt ' + (c || ''), title, 'aria-label': title, onClick: run }, t));
+        this.fmtGroup.push(h('button', { type: 'button', class: 'fmt', title: 'Link a keyword to a folder', 'aria-label': 'Link a keyword to a folder', onClick: () => this.folderLink() }, icon('folder')));
         bar.append(...this.fmtGroup);
       }
     }
@@ -1577,11 +1719,30 @@ class NoteEditor {
     const a = this.area, t = a.value.slice(a.selectionStart, a.selectionEnd) || 'link text';
     this.insert(`[${t}](https://)`, t.length + 3, t.length + 11);
   }
+  async folderLink() {
+    const a = this.area;
+    let from = a.selectionStart, to = a.selectionEnd;
+    const picked = a.value.slice(from, to);
+    from += picked.length - picked.trimStart().length;
+    to -= picked.length - picked.trimEnd().length;
+    const keyword = a.value.slice(from, Math.max(from, to));
+    const r = await linkDialog({
+      title: 'Link a keyword',
+      body: 'In Read view, tap the keyword to open the folder or file. The note stores it as [[folder|keyword]].',
+      keyword, askKeyword: true
+    });
+    a.focus({ preventScroll: true });
+    if (!r || !r.target) return;
+    a.setSelectionRange(from, Math.max(from, to));
+    const res = resolveLink(r.target);
+    const name = res ? linkName(res) : basename(r.target);
+    this.insert(!r.keyword || r.keyword === name ? `[[${r.target}]]` : `[[${r.target}|${r.keyword}]]`);
+  }
 }
 
 /* ---------- App state ---------- */
 const app = {
-  entries: [], open: null, openSeq: 0, expanded: new Set(), folder: '', filter: '',
+  entries: [], open: null, openSeq: 0, expanded: new Set(), folder: '', filter: '', viewFolder: null,
   saving: false, lastSync: 0, lastWrite: 0, connected: false, draftFailed: false, banner: null
 };
 const blobCache = new Map();
@@ -1807,7 +1968,8 @@ function moreButton(run, name) {
   return readOnly() ? null : h('button', { class: 'icon-btn row-more', type: 'button', title: 'Actions for ' + name, 'aria-label': 'Actions for ' + name, onClick: e => { e.stopPropagation(); run(e.currentTarget); } }, icon('more'));
 }
 function folderRow(f, depth, open) {
-  const row = h('div', { class: 'row', role: 'treeitem', 'aria-expanded': String(open) });
+  const active = !app.open && app.viewFolder === f.path;
+  const row = h('div', { class: 'row' + (active ? ' active' : ''), role: 'treeitem', 'aria-expanded': String(open) });
   row.style.setProperty('--depth', depth);
   row.append(h('button', { class: 'row-main', type: 'button', onClick: () => {
     if (open && !app.filter) app.expanded.delete(f.path); else app.expanded.add(f.path);
@@ -1844,6 +2006,8 @@ function newMenu(anchor) {
 }
 function folderMenu(anchor, path, point) {
   showMenu(anchor, [...createItems(path), '-',
+    { icon: 'external', label: 'Open folder page', run: () => { location.hash = folderHash(path); if (narrow()) toggleSide(false); } },
+    { icon: 'chain', label: 'Copy link for notes', run: () => copyText('[[' + path + ']]') }, '-',
     { icon: 'rename', label: 'Rename', run: () => renameItem(path, true) },
     { icon: 'move', label: 'Move', run: () => moveItem(path, true) },
     { icon: 'trash', label: 'Delete', danger: true, run: () => deleteItem(path, true) }], point);
@@ -1959,6 +2123,7 @@ async function newFolder(parent) {
     while (dir) { app.expanded.add(dir); dir = dirname(dir); }
     app.folder = path;
     renderTree();
+    refreshFolderView();
   } catch (e) { fail(e); }
 }
 async function starterFolders() {
@@ -2005,6 +2170,12 @@ async function relocate(from, to, isFolder, message) {
       history.replaceState(null, '', hashFor(app.open.path));
     }
     renderTree();
+    const v = app.viewFolder;
+    if (!app.open && v != null && isFolder && (v === from || v.startsWith(from + '/'))) {
+      const moved = to + v.slice(from.length);
+      history.replaceState(null, '', folderHash(moved));
+      showFolder(moved);
+    } else refreshFolderView();
   } catch (e) { failCommit(e); }
 }
 async function failCommit(e) {
@@ -2057,6 +2228,9 @@ async function deleteItem(path, isFolder) {
     app.lastWrite = Date.now();
     for (const e of items) drafts.del(e.path);
     if (app.open && (app.open.path === path || app.open.path.startsWith(path + '/'))) { closeEditor(); history.replaceState(null, '', location.pathname + location.search); showHome(); }
+    const v = app.viewFolder;
+    if (!app.open && v != null && isFolder && (v === path || v.startsWith(path + '/'))) { history.replaceState(null, '', location.pathname + location.search); showHome(); }
+    else refreshFolderView();
     renderTree();
     toast('Deleted ' + name + '.');
   } catch (e) { failCommit(e); }
@@ -2073,7 +2247,53 @@ function route() {
   let path = '';
   try { path = decodeURIComponent(location.hash.replace(/^#\/?/, '')); } catch { /* bad link */ }
   if (path && app.open && app.open.path === path) return;
-  if (path) openPath(path); else { closeEditor(); showHome(); renderTree(); }
+  const folder = path.endsWith('/') ? path.replace(/\/+$/, '') : null;
+  if (path && folder !== '') {
+    if (folder == null) { openPath(path); return; }
+    flushDraft(); closeEditor(); showFolder(folder);
+  } else { flushDraft(); closeEditor(); showHome(); renderTree(); }
+}
+function refreshFolderView() { if (app.connected && !app.open && app.viewFolder != null) showFolder(app.viewFolder); }
+/* A page listing what a folder holds. Keyword links like [[Research/GRU]] open it. */
+function showFolder(path) {
+  app.viewFolder = path;
+  app.folder = path;
+  let dir = path;
+  while (dir) { app.expanded.add(dir); dir = dirname(dir); }
+  renderCrumbs();
+  const parts = path.split('/'), name = parts[parts.length - 1];
+  ui.crumbs.replaceChildren(parts.length > 1 ? h('span', { class: 'crumb-path', title: dirname(path) }, parts.slice(0, -1).join(' / ') + ' /') : '', h('span', { class: 'crumb-name', title: path }, name));
+  document.title = name + ' | ' + SITE_NAME;
+  renderTree();
+  const trail = h('nav', { class: 'f-trail', 'aria-label': 'Folder path' }, h('a', { href: '#/' }, 'Home'));
+  parts.slice(0, -1).forEach((seg, i) => trail.append(h('span', { 'aria-hidden': 'true' }, '/'), h('a', { href: folderHash(parts.slice(0, i + 1).join('/')) }, seg)));
+  if (!folderExists(path)) {
+    ui.body.replaceChildren(h('div', { class: 'other' }, h('p', null, 'This folder isn\'t in the repository. It may have been renamed, moved or deleted.'), h('a', { class: 'btn', href: '#/' }, 'Go home')));
+    return;
+  }
+  const cmp = (a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true });
+  const all = files().filter(visible);
+  const subs = folderList().filter(f => dirname(f) === path);
+  const docs = all.filter(e => dirname(e.path) === path).map(e => e.path).sort((a, b) => cmp(displayName(a), displayName(b)));
+  const inside = p => all.filter(e => e.path.startsWith(p + '/')).length;
+  const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+  const list = h('ul', { class: 'f-list' });
+  for (const f of subs) {
+    const n = inside(f);
+    list.append(h('li', null, h('a', { class: 'f-row', href: folderHash(f) }, icon('folder', 'f-dir'), h('span', { class: 'f-name' }, basename(f)), h('small', null, n ? plural(n, 'file') : 'Empty'))));
+  }
+  for (const p of docs) {
+    const k = kindOf(p);
+    list.append(h('li', null, h('a', { class: 'f-row', href: hashFor(p) }, icon(KIND_ICON[k]), h('span', { class: 'f-name' }, displayName(p)), h('small', null, KIND_LABEL[k] || (k === 'text' ? 'text' : 'file')))));
+  }
+  const btns = h('div', { class: 'f-btns' },
+    h('button', { class: 'btn', type: 'button', title: 'Copy a link to paste into a note', onClick: () => copyText('[[' + path + ']]') }, icon('chain'), h('span', null, 'Copy link')),
+    readOnly() ? null : h('button', { class: 'btn primary', type: 'button', onClick: e => showMenu(e.currentTarget, createItems(path)) }, icon('plus'), h('span', null, 'New')));
+  const meta = [subs.length && plural(subs.length, 'folder'), docs.length && plural(docs.length, 'file')].filter(Boolean).join(', ');
+  ui.body.replaceChildren(h('div', { class: 'folder' }, h('div', { class: 'folder-inner' },
+    trail,
+    h('div', { class: 'f-head' }, h('div', null, h('h2', null, name), h('p', { class: 'f-meta' }, meta || 'Empty folder')), btns),
+    subs.length || docs.length ? list : h('p', { class: 'f-empty' }, readOnly() ? 'This folder is empty.' : 'This folder is empty. Select New to add something.'))));
 }
 function renderCrumbs() {
   if (!app.open) { ui.crumbs.replaceChildren(); ui.saveBtn.hidden = true; ui.moreBtn.hidden = true; ui.state.textContent = ''; document.title = SITE_NAME; return; }
@@ -2098,6 +2318,7 @@ function closeEditor() {
   renderCrumbs();
 }
 function showHome() {
+  app.viewFolder = null;
   const empty = !files().some(visible);
   const inner = h('div', { class: 'home-inner' }, h('h2', null, empty ? 'Start your knowledge base' : 'Pick up where you left off'));
   if (readOnly()) {
@@ -2121,6 +2342,7 @@ async function openPath(path) {
   const seq = ++app.openSeq;
   if (app.open && app.open.editor) { flushDraft(); app.open.editor.destroy(); }
   app.open = null;
+  app.viewFolder = null;
   ui.banner.hidden = true;
   const entry = entryAt(path);
   let dir = dirname(path);
@@ -2278,6 +2500,7 @@ async function refresh(quiet, noReopen) {
   try {
     setEntries(await gh.tree(gh.conn.branch));
     renderTree();
+    refreshFolderView();
     if (!quiet) toast('Up to date with GitHub.');
     const o = app.open;
     if (!o || !o.editor || noReopen || Date.now() - app.lastWrite < 15000) return;
